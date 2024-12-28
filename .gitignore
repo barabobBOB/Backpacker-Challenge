@@ -4,6 +4,9 @@
 .gradle
 .idea
 build
+src/main/java/com/project/data/input
+src/main/java/com/project/data/output
+src/main/java/com/project/data/checkpoint
 
 ### Java ###
 # Compiled class file
