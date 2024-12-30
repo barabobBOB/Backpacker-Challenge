@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Appenders>
+        <!-- 콘솔 출력 -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%highlight{%p}{FATAL=bright_red, ERROR=red, WARN=yellow, INFO=green, DEBUG=cyan, TRACE=blue}] [%c] - %m%n"/>
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <!-- 루트 로거 -->
+        <Root level="debug">
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>
