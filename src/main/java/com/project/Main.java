@@ -29,5 +29,20 @@ public class Main {
                 .partitionBy("partition_date")
                 .parquet("./src/main/java/com/project/data/output/parquet/");
 
+        String outputPath = "./src/main/java/com/project/data/output/parquet";
+
+        spark.sql("CREATE EXTERNAL TABLE IF NOT EXISTS ecommerce_activity_log (" +
+                "user_id STRING, " +
+                "item_id STRING, " +
+                "category_id STRING, " +
+                "behavior STRING, " +
+                "event_time STRING, " +
+                "event_time_kst TIMESTAMP, " +
+                "partition_date STRING" +
+                ") STORED AS PARQUET " +
+                "LOCATION '" + outputPath + "'");
+
+        spark.sql("SET hive.exec.dynamic.partition = true");
+        spark.sql("SET hive.exec.dynamic.partition.mode = nonstrict");
     }
 }
