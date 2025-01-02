@@ -4,9 +4,9 @@
 .gradle
 .idea
 build
-src/main/java/com/project/data/input
-src/main/java/com/project/data/output
-src/main/java/com/project/data/checkpoint
+data
+process_status.db
+identifier.sqlite
 
 ### Java ###
 # Compiled class file
