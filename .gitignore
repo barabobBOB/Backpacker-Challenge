@@ -5,6 +5,8 @@
 .idea
 build
 data
+process_status.db
+identifier.sqlite
 
 ### Java ###
 # Compiled class file
