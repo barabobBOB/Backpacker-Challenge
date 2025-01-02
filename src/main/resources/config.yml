@@ -1,0 +1,10 @@
+database:
+  url: "jdbc:sqlite:process_status.db"
+
+app:
+  timezone: "Asia/Seoul"
+  startMonth: "2019-Oct"
+  endMonth: "2019-Nov"
+  inputPath: "/Users/choeseyeon/Documents/Backpacker-Challenge/data/input/"
+  outputPath: "/Users/choeseyeon/Documents/Backpacker-Challenge/spark-warehouse/data/partitions/"
+  partition: "DAY"

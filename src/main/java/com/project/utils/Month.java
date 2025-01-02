@@ -1,5 +1,8 @@
 package com.project.utils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public enum Month {
     JAN("Jan"),
     FEB("Feb"),
@@ -24,12 +27,10 @@ public enum Month {
         return abbreviation;
     }
 
-    // 다음 월 반환
     public Month next() {
         return values()[(this.ordinal() + 1) % 12];
     }
 
-    // 문자열로부터 Enum 값 반환
     public static Month fromString(String abbreviation) {
         for (Month month : values()) {
             if (month.abbreviation.equalsIgnoreCase(abbreviation)) {
@@ -37,6 +38,32 @@ public enum Month {
             }
         }
         throw new IllegalArgumentException("Invalid month abbreviation: " + abbreviation);
+    }
+
+    public static List<String> getMonthsInRange(String start, String end) {
+        String[] startParts = start.split("-");
+        String[] endParts = end.split("-");
+
+        int startYear = Integer.parseInt(startParts[0]);
+        String startMonth = startParts[1];
+
+        int endYear = Integer.parseInt(endParts[0]);
+        String endMonth = endParts[1];
+
+        List<String> result = new ArrayList<>();
+        int currentYear = startYear;
+        Month currentMonth = Month.fromString(startMonth);
+
+        while (!(currentYear == endYear && currentMonth == Month.fromString(endMonth).next())) {
+            result.add(currentYear + "-" + currentMonth.getAbbreviation());
+
+            currentMonth = currentMonth.next();
+            if (currentMonth == Month.JAN) {
+                currentYear++;
+            }
+        }
+
+        return result;
     }
 }
 
