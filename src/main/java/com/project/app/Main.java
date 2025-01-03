@@ -71,11 +71,12 @@ public class Main {
 
         // Hive 테이블 관리 및 오류 복구
         try {
-            hiveTableManager.manageHiveTable(safeTimezone, conn);
+            hiveTableManager.manageHiveTable(conn);
         } catch (RuntimeException e) {
-            hiveTableManager.recoverBatch(hiveTableManager, safeTimezone, conn);
+            hiveTableManager.recoverBatch(hiveTableManager, conn);
         }
     }
+
     /**
      * SparkSession을 초기화하고 설정합니다.
      *

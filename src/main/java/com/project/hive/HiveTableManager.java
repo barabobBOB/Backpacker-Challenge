@@ -67,7 +67,7 @@ public class HiveTableManager {
     /**
      * Hive 테이블 생성.
      */
-    public void createExternalTable(String partition) {
+    public void createExternalTable() {
         if (isTableExists()) {
             logger.info("Hive 테이블 생성 생략: {}", tableName);
             return;
@@ -85,7 +85,6 @@ public class HiveTableManager {
                             "price DOUBLE, " +
                             "user_id INT, " +
                             "user_session STRING, " +
-                            "event_time_" + partition + " TIMESTAMP" +
                             ") " +
                             "PARTITIONED BY (partition_date STRING) " +
                             "STORED AS PARQUET " +
@@ -146,13 +145,12 @@ public class HiveTableManager {
      * Hive 작업 복구를 수행합니다.
      *
      * @param hiveTableManager HiveTableManager 객체
-     * @param safeTimezone 안전한 타임존 값
      * @param conn 데이터베이스 연결 객체
      */
-    public void recoverBatch(HiveTableManager hiveTableManager, String safeTimezone, Connection conn) {
+    public void recoverBatch(HiveTableManager hiveTableManager, Connection conn) {
         try {
             logger.info("Hive 작업 복구를 시작합니다.");
-            recoverHiveOperations(hiveTableManager, safeTimezone, conn);
+            recoverHiveOperations(hiveTableManager, conn);
             repairHiveMetadata(hiveTableManager, conn);
             logger.info("Hive 작업 복구 완료.");
         } catch (Exception e) {
@@ -175,12 +173,11 @@ public class HiveTableManager {
     /**
      * Hive 테이블 관리 작업을 수행합니다.
      *
-     * @param safeTimezone 안전한 타임존 값
      * @param conn 데이터베이스 연결 객체
      */
-    public void manageHiveTable(String safeTimezone, Connection conn) {
+    public void manageHiveTable(Connection conn) {
         try {
-            createExternalTable(safeTimezone);
+            createExternalTable();
             enableDynamicPartitioning();
             repairTablePartitions();
         } catch (Exception e) {
@@ -217,16 +214,15 @@ public class HiveTableManager {
      * Hive 작업을 복구합니다.
      *
      * @param hiveTableManager HiveTableManager 객체
-     * @param safeTimezone 안전한 타임존 값
      * @param conn 데이터베이스 연결 객체
      */
-    private void recoverHiveOperations(HiveTableManager hiveTableManager, String safeTimezone, Connection conn) {
+    private void recoverHiveOperations(HiveTableManager hiveTableManager, Connection conn) {
         int retryCount = 0;
 
         while (retryCount < MAX_RETRY_COUNT) {
             try {
                 logger.info("Hive 작업 복구 시도 중... (재시도 횟수: {}/{})", retryCount + 1, MAX_RETRY_COUNT);
-                hiveTableManager.manageHiveTable(safeTimezone, conn);
+                hiveTableManager.manageHiveTable(conn);
                 logger.info("Hive 작업 복구 성공!");
                 return;
             } catch (Exception e) {
