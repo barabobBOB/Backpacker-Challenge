@@ -58,7 +58,7 @@ public class PartitionManager {
                         .withColumn("partition_date",
                                 functions.date_format(
                                         functions.from_utc_timestamp(functions.col("event_time"), timezone),
-                                        "yyyy-MM-dd"
+                                        partition.getFormat()
                                 )
                         );
 
