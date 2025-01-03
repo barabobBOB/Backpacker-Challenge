@@ -142,6 +142,13 @@ public class HiveTableManager {
         }
     }
 
+    /**
+     * Hive 작업 복구를 수행합니다.
+     *
+     * @param hiveTableManager HiveTableManager 객체
+     * @param safeTimezone 안전한 타임존 값
+     * @param conn 데이터베이스 연결 객체
+     */
     public void recoverBatch(HiveTableManager hiveTableManager, String safeTimezone, Connection conn) {
         try {
             logger.info("Hive 작업 복구를 시작합니다.");
@@ -155,11 +162,22 @@ public class HiveTableManager {
         }
     }
 
+    /**
+     * 관리자에게 알림을 전송합니다.
+     *
+     * @param message 알림 메시지
+     */
     private void sendAlert(String message) {
         // TODO: 이메일 또는 Slack 알림 전송
         logger.info("관리자에게 알림 전송: {}", message);
     }
 
+    /**
+     * Hive 테이블 관리 작업을 수행합니다.
+     *
+     * @param safeTimezone 안전한 타임존 값
+     * @param conn 데이터베이스 연결 객체
+     */
     public void manageHiveTable(String safeTimezone, Connection conn) {
         try {
             createExternalTable(safeTimezone);
@@ -173,6 +191,13 @@ public class HiveTableManager {
             throw new RuntimeException("Hive 작업 실패", e);
         }
     }
+
+    /**
+     * Hive 메타데이터를 복구합니다.
+     *
+     * @param hiveTableManager HiveTableManager 객체
+     * @param conn 데이터베이스 연결 객체
+     */
 
     private void repairHiveMetadata(HiveTableManager hiveTableManager, Connection conn) {
         try {
@@ -188,6 +213,13 @@ public class HiveTableManager {
         }
     }
 
+    /**
+     * Hive 작업을 복구합니다.
+     *
+     * @param hiveTableManager HiveTableManager 객체
+     * @param safeTimezone 안전한 타임존 값
+     * @param conn 데이터베이스 연결 객체
+     */
     private void recoverHiveOperations(HiveTableManager hiveTableManager, String safeTimezone, Connection conn) {
         int retryCount = 0;
 
@@ -211,6 +243,13 @@ public class HiveTableManager {
         }
     }
 
+    /**
+     * Hive 작업 실패를 기록합니다.
+     *
+     * @param conn 데이터베이스 연결 객체
+     * @param operation 실패한 작업 이름
+     * @param errorMessage 오류 메시지
+     */
     private void logFailure(Connection conn, String operation, String errorMessage) {
         ProcessStatusRepository.create(conn, new ProcessStatus(
                 "", operation, Status.FAILURE.getStatus(), errorMessage, "", Type.HIVE.getType()
