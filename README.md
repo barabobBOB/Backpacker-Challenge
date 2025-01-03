@@ -144,30 +144,30 @@ $ java \
 │                   └── day
 │                       └── ...
 └── src
-		└── main
-		    ├── java
-		    │   └── com
-		    │       └── project
-		    │           ├── app ✅ **메인 실행 클래스 및 엔트리포인트**
-		    │           │   └── Main.java ✅ **애플리케이션 진입점**
-		    │           ├── config ✅ **설정 파일 로드 및 관리**
-		    │           │   └── ConfigLoader.java ✅ **YAML 설정 로더**
-		    │           ├── database ✅ **데이터베이스 연결 및 상태 관리**
-		    │           │   ├── DatabaseConnection.java ✅ **데이터베이스 연결 객체 생성**
-		    │           │   └── ProcessStatusRepository.java ✅ **프로세스 상태 관리 레포지토리**
-		    │           ├── entity ✅ **데이터 모델 클래스 정의**
-		    │           │   └── ProcessStatus.java ✅ **프로세스 상태 엔티티 클래스**
-		    │           ├── hive ✅ **Hive 관련 작업 클래스**
-		    │           │   ├── HiveTableManager.java ✅ **Hive External Table 및 파티션 관리**
-		    │           │   └── PartitionManager.java ✅ **Spark 파티셔닝 로직 관리**
-		    │           └── utils ✅ **유틸리티 클래스 모음**
-		    │               ├── Month.java ✅ **월 단위 처리 관련 유틸리티**
-		    │               ├── Status.java ✅ **프로세스 상태 열거형**
-		    │               ├── TimePartition.java ✅ **파티셔닝 타입 정의 및 관리**
-		    │               └── Type.java ✅ **프로세스 타입 열거형**
-		    └── resources
-		        ├── config.yml ✅ **애플리케이션 설정 파일**
-		        └── log4j2.xml ✅ **로그 설정 파일**
+	└── main
+	    ├── java
+	    │   └── com
+	    │       └── project
+	    │           ├── app ✅ **메인 실행 클래스 및 엔트리포인트**
+	    │           │   └── Main.java ✅ **애플리케이션 진입점**
+	    │           ├── config ✅ **설정 파일 로드 및 관리**
+	    │           │   └── ConfigLoader.java ✅ **YAML 설정 로더**
+	    │           ├── database ✅ **데이터베이스 연결 및 상태 관리**
+	    │           │   ├── DatabaseConnection.java ✅ **데이터베이스 연결 객체 생성**
+	    │           │   └── ProcessStatusRepository.java ✅ **프로세스 상태 관리 레포지토리**
+	    │           ├── entity ✅ **데이터 모델 클래스 정의**
+	    │           │   └── ProcessStatus.java ✅ **프로세스 상태 엔티티 클래스**
+	    │           ├── hive ✅ **Hive 관련 작업 클래스**
+	    │           │   ├── HiveTableManager.java ✅ **Hive External Table 및 파티션 관리**
+	    │           │   └── PartitionManager.java ✅ **Spark 파티셔닝 로직 관리**
+	    │           └── utils ✅ **유틸리티 클래스 모음**
+	    │               ├── Month.java ✅ **월 단위 처리 관련 유틸리티**
+	    │               ├── Status.java ✅ **프로세스 상태 열거형**
+	    │               ├── TimePartition.java ✅ **파티셔닝 타입 정의 및 관리**
+	    │               └── Type.java ✅ **프로세스 타입 열거형**
+	    └── resources
+		├── config.yml ✅ **애플리케이션 설정 파일**
+		└── log4j2.xml ✅ **로그 설정 파일**
 ```
 
 ---
