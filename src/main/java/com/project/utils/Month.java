@@ -31,6 +31,13 @@ public enum Month {
         return values()[(this.ordinal() + 1) % 12];
     }
 
+    /**
+     * 주어진 월의 축약형 문자열(abbreviation)을 기반으로 해당 월(Month) 객체를 반환합니다.
+     *
+     * @param abbreviation 월의 축약형 문자열 (예: "Jan", "Feb", "Mar" 등)
+     * @return 주어진 축약형에 해당하는 Month 객체
+     * @throws IllegalArgumentException 유효하지 않은 축약형 문자열이 주어졌을 경우 예외 발생
+     */
     public static Month fromString(String abbreviation) {
         for (Month month : values()) {
             if (month.abbreviation.equalsIgnoreCase(abbreviation)) {
@@ -40,6 +47,13 @@ public enum Month {
         throw new IllegalArgumentException("Invalid month abbreviation: " + abbreviation);
     }
 
+    /**
+     * 주어진 시작 월과 종료 월 범위 내의 모든 월을 리스트로 반환합니다.
+     *
+     * @param start 시작 월 (형식: "yyyy-MM", 예: "2019-01")
+     * @param end 종료 월 (형식: "yyyy-MM", 예: "2019-12")
+     * @return 시작 월과 종료 월 사이의 월을 포함하는 리스트
+     */
     public static List<String> getMonthsInRange(String start, String end) {
         String[] startParts = start.split("-");
         String[] endParts = end.split("-");

@@ -3,18 +3,20 @@ package com.project.entity;
 public class ProcessStatus {
     private int id;
     private String partitionKey;
-    private String fileName;
+    private String processName;
     private String status;
     private String errorMessage;
     private String timezone;
     private String lastUpdated;
+    private String type;
 
-    public ProcessStatus(String partitionKey, String fileName, String status, String errorMessage, String timezone) {
+    public ProcessStatus(String partitionKey, String processName, String status, String errorMessage, String timezone, String type) {
         this.partitionKey = partitionKey;
-        this.fileName = fileName;
+        this.processName = processName;
         this.status = status;
         this.errorMessage = errorMessage;
         this.timezone = timezone;
+        this.type = type;
     }
 
     public int getId() {
@@ -33,12 +35,12 @@ public class ProcessStatus {
         this.partitionKey = partitionKey;
     }
 
-    public String getFileName() {
-        return fileName;
+    public String getProcessName() {
+        return processName;
     }
 
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
+    public void setProcessName(String processName) {
+        this.processName = processName;
     }
 
     public String getStatus() {
@@ -71,5 +73,13 @@ public class ProcessStatus {
 
     public void setLastUpdated(String lastUpdated) {
         this.lastUpdated = lastUpdated;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getType() {
+        return type;
     }
 }

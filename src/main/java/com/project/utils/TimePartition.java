@@ -29,8 +29,4 @@ public enum TimePartition {
     public String getInputType() {
         return inputType;
     }
-
-    public String getColumnValueExpr(String sourceColumn) {
-        return "date_format(" + sourceColumn + ", '" + format + "')";
-    }
 }
