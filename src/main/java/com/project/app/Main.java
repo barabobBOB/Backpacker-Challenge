@@ -37,8 +37,9 @@ public class Main {
         String inputPath = (String) appConfig.get("inputPath");
         String outputPath = (String) appConfig.get("outputPath");
         String partitionType = (String) appConfig.get("partition");
+        String derbyPath = (String) appConfig.get("derbyPath");
         TimePartition partition = TimePartition.valueOf(partitionType);
-        TimeZone.setDefault(TimeZone.getTimeZone(timezone));
+        Boolean retryFailed = (Boolean) appConfig.get("retryFailed");
 
         Connection conn = DatabaseConnection.getConnection(url);
         ProcessStatusRepository.initialize(conn);
@@ -51,20 +52,29 @@ public class Main {
                 .config("spark.sql.warehouse.dir", "./spark-warehouse")
                 .enableHiveSupport()
                 .getOrCreate();
+        spark.conf().set("spark.sql.session.timeZone", "UTC");
 
         String tableName = "ecommerce_activity_log";
         String tableLocation = outputPath + timezone + "/" + partition;
 
-        HiveTableManager hiveTableManager = new HiveTableManager(spark, tableName, tableLocation);
+        HiveTableManager hiveTableManager = new HiveTableManager(spark, tableName, tableLocation, derbyPath);
 
         List<String> date = Month.getMonthsInRange(startMonth, endMonth);
         String safeTimezone = timezone.replace("/", "_");
 
         PartitionManager partitionManager = new PartitionManager(spark, outputPath, timezone, partition, conn);
-        partitionManager.processAndStorePartitions(inputPath, date, safeTimezone);
 
-        hiveTableManager.createExternalTable();
-        hiveTableManager.enableDynamicPartitioning();
-        hiveTableManager.repairTablePartitions();
+        if (retryFailed) {
+            partitionManager.retryProcessAndStorePartitions(inputPath, date, safeTimezone);
+        }
+        if (!retryFailed) {
+            partitionManager.processAndStorePartitions(inputPath, date, safeTimezone);
+        }
+
+        try {
+            hiveTableManager.manageHiveTable(safeTimezone, conn);
+        } catch (RuntimeException e) {
+            hiveTableManager.recoverBatch(hiveTableManager, safeTimezone, conn);
+        }
     }
 }

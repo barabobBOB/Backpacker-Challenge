@@ -8,3 +8,5 @@ app:
   inputPath: "/Users/choeseyeon/Documents/Backpacker-Challenge/data/input/"
   outputPath: "/Users/choeseyeon/Documents/Backpacker-Challenge/spark-warehouse/data/partitions/"
   partition: "DAY"
+  derbyPath: "/Users/choeseyeon/Documents/Backpacker-Challenge/metastore_db"
+  retryFailed: false

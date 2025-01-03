@@ -2,7 +2,7 @@ package com.project.utils;
 
 public enum Status {
     SUCCESS("success"),
-    FAIL("failure");
+    FAILURE("failure");
 
     private final String status;
 

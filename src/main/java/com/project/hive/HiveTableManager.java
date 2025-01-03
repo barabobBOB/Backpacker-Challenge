@@ -1,33 +1,91 @@
 package com.project.hive;
 
+import com.project.database.ProcessStatusRepository;
+import com.project.entity.ProcessStatus;
+import com.project.utils.Status;
+import com.project.utils.Type;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.spark.sql.SparkSession;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+
 public class HiveTableManager {
     private static final Logger logger = LogManager.getLogger(HiveTableManager.class);
+    private static final int MAX_RETRY_COUNT = 3;
     private final SparkSession spark;
     private final String tableName;
     private final String tableLocation;
+    private final String derbyPath;
 
-    public HiveTableManager(SparkSession spark, String tableName, String tableLocation) {
+    public HiveTableManager(SparkSession spark, String tableName, String tableLocation, String derbyPath) {
         this.spark = spark;
         this.tableName = tableName;
         this.tableLocation = tableLocation;
+        this.derbyPath = derbyPath;
+    }
+
+    /**
+     * Hive 테이블이 존재하는지 확인합니다.
+     *
+     * @return 테이블이 존재하면 true, 존재하지 않으면 false
+     */
+    public boolean isTableExists() {
+        String jdbcUrl = "jdbc:derby:" + derbyPath;
+        String query = "SELECT TB.TBL_NAME " +
+                "FROM TBLS TB " +
+                "JOIN DBS DB ON TB.DB_ID = DB.DB_ID " +
+                "WHERE DB.NAME = 'default' AND TB.TBL_NAME = '" + tableName + "'";
+
+        try (Connection conn = DriverManager.getConnection(jdbcUrl);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            if (rs.next()) {
+                logger.info("Hive 테이블이 이미 존재합니다: {}", tableName);
+                return true;
+            }
+        } catch (java.sql.SQLException e){
+            if (e.getMessage().contains("not found")){
+                logger.warn("데이터베이스가 존재하지 않습니다.");
+            } else {
+                logger.error("Hive 메타스토어에서 테이블 존재 여부 확인 중 오류 발생", e);
+                throw new RuntimeException("테이블 존재 여부 확인 실패", e);
+            }
+        }
+        catch (Exception e) {
+            logger.error("Hive 메타스토어에서 테이블 존재 여부 확인 중 오류 발생", e);
+        }
+
+        logger.info("Hive 테이블이 존재하지 않습니다: {}", tableName);
+        return false;
     }
 
     /**
      * Hive 테이블 생성.
      */
-    public void createExternalTable() {
+    public void createExternalTable(String partition) {
+        if (isTableExists()) {
+            logger.info("Hive 테이블 생성 생략: {}", tableName);
+            return;
+        }
+
         try {
             String createTableQuery = String.format(
                     "CREATE EXTERNAL TABLE IF NOT EXISTS %s (" +
-                            "user_id STRING, " +
-                            "item_id STRING, " +
-                            "category_id STRING, " +
-                            "behavior STRING, " +
-                            "event_time STRING" +
+                            "event_time TIMESTAMP, " +
+                            "event_type STRING, " +
+                            "product_id INT, " +
+                            "category_id BIGINT, " +
+                            "category_code STRING, " +
+                            "brand STRING, " +
+                            "price DOUBLE, " +
+                            "user_id INT, " +
+                            "user_session STRING, " +
+                            "event_time_" + partition + " TIMESTAMP" +
                             ") " +
                             "PARTITIONED BY (partition_date STRING) " +
                             "STORED AS PARQUET " +
@@ -82,5 +140,80 @@ public class HiveTableManager {
         } catch (Exception e) {
             logger.error("파티션 추가 실패: {} - {}", tableName, partitionDate, e);
         }
+    }
+
+    public void recoverBatch(HiveTableManager hiveTableManager, String safeTimezone, Connection conn) {
+        try {
+            logger.info("Hive 작업 복구를 시작합니다.");
+            recoverHiveOperations(hiveTableManager, safeTimezone, conn);
+            repairHiveMetadata(hiveTableManager, conn);
+            logger.info("Hive 작업 복구 완료.");
+        } catch (Exception e) {
+            logger.error("Hive 작업 복구 중 치명적 오류 발생: {}", e.getMessage());
+            logFailure(conn, "HiveBatchRecovery", e.getMessage());
+            sendAlert("Hive 복구 실패: " + e.getMessage());
+        }
+    }
+
+    private void sendAlert(String message) {
+        // TODO: 이메일 또는 Slack 알림 전송
+        logger.info("관리자에게 알림 전송: {}", message);
+    }
+
+    public void manageHiveTable(String safeTimezone, Connection conn) {
+        try {
+            createExternalTable(safeTimezone);
+            enableDynamicPartitioning();
+            repairTablePartitions();
+        } catch (Exception e) {
+            logger.error("Hive 관련 오류 발생", e);
+            ProcessStatusRepository.create(conn, new ProcessStatus(
+                    "", "HiveOperation", Status.FAILURE.getStatus(), e.getMessage(), "", Type.HIVE.getType()
+            ));
+            throw new RuntimeException("Hive 작업 실패", e);
+        }
+    }
+
+    private void repairHiveMetadata(HiveTableManager hiveTableManager, Connection conn) {
+        try {
+            logger.info("Hive 메타데이터 복구를 시작합니다.");
+            hiveTableManager.repairTablePartitions();
+            logger.info("Hive 메타데이터 복구 성공.");
+        } catch (Exception e) {
+            logger.error("Hive 메타데이터 복구 실패: {}", e.getMessage());
+            ProcessStatusRepository.create(conn, new ProcessStatus(
+                    "", "HiveMetadataRepair", Status.FAILURE.getStatus(),
+                    e.getMessage(), "", Type.HIVE.getType()
+            ));
+        }
+    }
+
+    private void recoverHiveOperations(HiveTableManager hiveTableManager, String safeTimezone, Connection conn) {
+        int retryCount = 0;
+
+        while (retryCount < MAX_RETRY_COUNT) {
+            try {
+                logger.info("Hive 작업 복구 시도 중... (재시도 횟수: {}/{})", retryCount + 1, MAX_RETRY_COUNT);
+                hiveTableManager.manageHiveTable(safeTimezone, conn);
+                logger.info("Hive 작업 복구 성공!");
+                return;
+            } catch (Exception e) {
+                retryCount++;
+                logger.error("Hive 작업 복구 실패: {}", e.getMessage());
+                if (retryCount >= MAX_RETRY_COUNT) {
+                    logger.error("Hive 작업 복구 최대 시도 횟수를 초과했습니다.");
+                    ProcessStatusRepository.create(conn, new ProcessStatus(
+                            "", "HiveOperationRecovery", Status.FAILURE.getStatus(),
+                            "최대 재시도 횟수 초과: " + e.getMessage(), "", Type.HIVE.getType()
+                    ));
+                }
+            }
+        }
+    }
+
+    private void logFailure(Connection conn, String operation, String errorMessage) {
+        ProcessStatusRepository.create(conn, new ProcessStatus(
+                "", operation, Status.FAILURE.getStatus(), errorMessage, "", Type.HIVE.getType()
+        ));
     }
 }
